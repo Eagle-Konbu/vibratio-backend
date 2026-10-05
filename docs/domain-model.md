@@ -131,6 +131,7 @@ flowchart LR
 | k（Source ごとの記事数の上限） | 未定 | 実装時 | [generate-episode.md](domain-model/generate-episode.md#設定値) |
 | N（Summary の最大文字数） | 300〜500 文字を目安とする | 実装時 | [generate-episode.md](domain-model/generate-episode.md#設定値) |
 | 再生成した音声の配信キャッシュ | 上書き時にキャッシュを無効化する / 生成ごとに新しい Key にする | AudioStorage Adapter の実装時 | [infra-alignment.md](domain-model/infra-alignment.md) |
+| 生成処理の直列化の実現方法 | 同時実行数を1にする / 日付ごとのロックを取る | infra の変更時 | [generate-episode.md](domain-model/generate-episode.md#同時実行) |
 | Episode テーブルのキー設計 | 未定 | infra の変更時 | [infra-alignment.md](domain-model/infra-alignment.md) |
 | Source の Enabled | 持たせるかどうか | CMS の実装時 | [future.md](domain-model/future.md) |
 

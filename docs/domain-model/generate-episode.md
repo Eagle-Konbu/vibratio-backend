@@ -29,6 +29,12 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 
 `now` は実行時刻、`today` はその JST の日付である。
 
+## 同時実行
+
+同じ JST の日付について、生成処理を同時に実行しない。手順6（FindByDate）から手順11（通知）が終わるまでを直列化する。スケジュール実行と手動の再実行が重なると、同じ日に別々の ID を採番したり、通知の順序が保存内容と食い違ったりするため。
+
+直列化の実現方法（実行の同時実行数を1にする、日付ごとのロックを取る等）は infra の変更時に決める（未決）。直列化が破られた場合に備え、Save は ID の異なる既存 Episode を上書きせずに失敗する（[episode.md](episode.md#identity-と-date)）。
+
 ## 失敗時
 
 自動では再試行せず、手動で全体を再実行する（[D-13](episode.md#d-13)）。
@@ -55,7 +61,7 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 | Repository | 操作 | 備考 |
 | --- | --- | --- |
 | SourceRepository | FindAll | 読み取りのみ。書き込みは CMS が行う |
-| EpisodeRepository | FindByDate, Save | Save は Date が同じ Episode を上書きする。Date の一意性は Save が原子的に保証する（[episode.md](episode.md#identity-と-date)） |
+| EpisodeRepository | FindByDate, Save | Save は Date と ID が同じ Episode を上書きする。ID の異なる Episode が同じ Date に保存済みなら失敗する（[episode.md](episode.md#identity-と-date)） |
 
 Article には Repository を置かない。
 
