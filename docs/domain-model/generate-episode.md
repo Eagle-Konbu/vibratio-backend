@@ -11,7 +11,9 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 
 ```text
 1. SourceRepository.FindAll()                          → Source[]
+     0件なら失敗とする（D-17）
 2. FeedFetcher.Fetch(source)  ※Source ごと             → Article[]
+     取得に失敗した Source はスキップしてログに出す。すべて失敗したら失敗とする（D-17）
 3. SelectArticles(fetched, now, window, k)            → Article[]
      0件なら Episode を作らずに正常終了する（D-16）
 4. ScriptGenerator.Generate(articles)                  → Script, Topics
@@ -41,6 +43,21 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 
 - 手順10（保存）までに失敗した場合、Episode は保存されない
 - 手順11（通知）で失敗した場合、Episode は保存済みである。再実行すると、その日の Episode を再生成して差し替える（Replace）
+
+### Source の取得の失敗
+
+一部の Source の取得に失敗しても、生成処理は止めない。失敗した Source をスキップし、残りの Source の記事で続ける（[D-17](#d-17)）。
+
+- Source が1件も登録されていないとき、またはすべての Source の取得に失敗したときは、生成処理を失敗とする。記事が0件の日（D-16）とは区別する
+- フィードの中の個々の記事が壊れている場合（PublishedAt がないなど）は、FeedFetcher の Adapter がその記事を除外する。Source の取得の失敗としては扱わない
+
+<a id="d-17"></a>
+
+> **D-17: 一部の Source の取得に失敗しても続行する**
+>
+> - 検討した案: 1つでも失敗したら全体を失敗にする / Source が0件・すべて失敗のときも記事0件の日として正常終了する
+> - 理由: フィードが1つ落ちているだけで毎朝の Episode が止まるのは、入口としての価値を損なう。一方、Source の未登録や全件の失敗は設定や通信の異常であり、記事がない日として正常終了させると気付けない
+> - 見直す条件: 一部の Source が欠けた Episode が、ユーザーにとって問題になったとき
 
 ## LLM 出力の検証
 

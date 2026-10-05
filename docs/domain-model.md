@@ -157,3 +157,4 @@ flowchart LR
 | [D-14](domain-model/episode.md#d-14) | 不正な Reference は除外して続行する | episode.md |
 | [D-15](domain-model/episode.md#d-15) | 再生成は同じ Use Case で上書きする | episode.md |
 | [D-16](domain-model/episode.md#d-16) | 記事が0件の日は Episode を作らない | episode.md |
+| [D-17](domain-model/generate-episode.md#d-17) | 一部の Source の取得に失敗しても続行する | generate-episode.md |
