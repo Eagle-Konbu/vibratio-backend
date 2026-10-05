@@ -64,4 +64,4 @@ SelectArticles(fetched: Source ごとの Article[], now, window, k) → Article[
 - RSS や LLM の仕様に依存しないルールなので Domain に置き、Port のモックなしで単体テストする（[D-05](decisions.md#d-05-記事の選定ルールは-domain-の関数)）
 - 入力を Source ごとにまとめて受け取るので、SourceName が重複していても Source ごとの上限を正しく適用できる
 - window・k の具体値は Application の[設定値](generate-episode.md#設定値)として引数で渡す
-- LLM への入力量は「Source 数 × k × (SourceName + Title + URL + PublishedAt + N)」で見積もれる。このうち上限を定めるのは k と N（Summary）だけである。SourceName・Title・URL・PublishedAt はフィードのメタデータで、Domain では長さを制限しない。Source 数も CMS で登録した数で決まり、上限を設けない
+- LLM への入力量は「Source 数 × k × (SourceName + Title + URL + PublishedAt + N)」で見積もれる。上限を定めるのは k と N だけである。SourceName・Title・URL・PublishedAt はフィードのメタデータであり、Domain では長さを制限しない。Source 数は CMS で登録した数で決まる
