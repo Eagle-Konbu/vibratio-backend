@@ -31,16 +31,24 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 
 ## 失敗時
 
-自動では再試行せず、手動で全体を再実行する（[D-13](decisions.md#d-13-episode-は完成したときだけ存在する)）。
+自動では再試行せず、手動で全体を再実行する（[D-13](episode.md#d-13)）。
 
 - 手順10（保存）までに失敗した場合、Episode は保存されない
 - 手順11（通知）で失敗した場合、Episode は保存済みである。再実行すると、その日の Episode を再生成して差し替える（Replace）
 
 ## LLM 出力の検証
 
-手順5の照合は LLM の出力に対する防御であり、入力記事の集合を持っている Use Case が行う（[D-03](decisions.md#d-03-llm-出力の検証は-use-case-の責務)）。
+手順5の照合は LLM の出力に対する防御であり、入力記事の集合を持っている Use Case が行う（[D-03](#d-03)）。
 
-不正な Reference があっても Episode の生成は止めない（[D-14](decisions.md#d-14-不正な-reference-は除外して続行する)）。頻発する場合は、URL ではなく入力記事のインデックスを LLM に出力させる方式に切り替える（[future.md](future.md)）。
+不正な Reference があっても Episode の生成は止めない（[D-14](episode.md#d-14)）。頻発する場合は、URL ではなく入力記事のインデックスを LLM に出力させる方式に切り替える（[future.md](future.md)）。
+
+<a id="d-03"></a>
+
+> **D-03: LLM 出力の検証は Use Case の責務**
+>
+> - 検討した案: Episode の不変条件にする / 検証しない / URL ではなく入力記事のインデックスを LLM に出力させる
+> - 理由: この検証は番組そのもののルールではなく、LLM という外部サービスの出力を信用しないための防御である。入力記事の集合は生成処理の中にしか存在しない（D-01）。Episode の不変条件にすると、入力記事の集合を Episode に渡す必要がある。Episode は保存された番組としての整合性だけを保証する。インデックス方式は、不正な Reference が頻発したときの切り替え先として残す
+> - 見直す条件: 不正な Reference が頻発したとき（[future.md](future.md)）
 
 ## Repository
 

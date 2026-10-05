@@ -3,7 +3,7 @@
 このファイルは vibratio backend の Domain Model の全体像を示す。各概念の詳細と判断理由は `docs/domain-model/` 配下に分けて書いた。
 
 - 状態: MVP の設計として合意済み（2026-10-05）。まだ決めていない項目は [§7](#7-未決事項) にまとめた
-- 読み方: 初めて読むなら §1〜5 で全体をつかみ、[episode.md](domain-model/episode.md) → [article.md](domain-model/article.md) → [generate-episode.md](domain-model/generate-episode.md) の順に読む。本文中の D-xx は [decisions.md](domain-model/decisions.md) の設計判断を指す
+- 読み方: 初めて読むなら §1〜5 で全体をつかみ、[episode.md](domain-model/episode.md) → [article.md](domain-model/article.md) → [generate-episode.md](domain-model/generate-episode.md) の順に読む。本文中の D-xx は設計判断の補足を指す。補足は関係する節の直後に置き、一覧は [§8](#8-設計判断の一覧) にまとめた
 
 ## 1. 目的
 
@@ -119,7 +119,6 @@ flowchart LR
 | [article.md](domain-model/article.md) | Article と記事の選定ルール |
 | [episode.md](domain-model/episode.md) | Episode / Script / Topic / Reference / Audio、不変条件、再生成 |
 | [generate-episode.md](domain-model/generate-episode.md) | Application Use Case、Repository、Port、LLM 出力の検証 |
-| [decisions.md](domain-model/decisions.md) | 設計判断の記録（選ばなかった案と理由） |
 | [future.md](domain-model/future.md) | MVP の範囲外とした拡張 |
 | [infra-alignment.md](domain-model/infra-alignment.md) | 本設計に合わせて infra 側で必要な変更 |
 
@@ -134,3 +133,26 @@ flowchart LR
 | 再生成した音声の配信キャッシュ | 上書き時にキャッシュを無効化する / 生成ごとに新しい Key にする | AudioStorage Adapter の実装時 | [infra-alignment.md](domain-model/infra-alignment.md) |
 | Episode テーブルのキー設計 | 未定 | infra の変更時 | [infra-alignment.md](domain-model/infra-alignment.md) |
 | Source の Enabled | 持たせるかどうか | CMS の実装時 | [future.md](domain-model/future.md) |
+
+## 8. 設計判断の一覧
+
+各判断の補足（検討した案・理由・見直す条件）は、関係する節の直後に置いた。見直す条件は、具体的なきっかけが想定できる判断にだけ書いた。
+
+| ID | 判断 | 記載箇所 |
+| --- | --- | --- |
+| [D-01](domain-model/article.md#d-01) | Article は保存しない | article.md |
+| [D-02](domain-model/episode.md#d-02) | Script と Topics を分離する | episode.md |
+| [D-03](domain-model/generate-episode.md#d-03) | LLM 出力の検証は Use Case の責務 | generate-episode.md |
+| [D-04](domain-model/article.md#d-04) | 対象期間は直近 24 時間 | article.md |
+| [D-05](domain-model/article.md#d-05) | 記事の選定ルールは Domain の関数 | article.md |
+| [D-06](domain-model/article.md#d-06) | PublishedAt は必須 | article.md |
+| [D-07](domain-model/article.md#d-07) | Summary はプレーンテキストで N 文字以内 | article.md |
+| [D-08](domain-model/article.md#d-08) | Article は SourceName を値として持つ | article.md |
+| [D-09](domain-model/source.md#d-09) | Source の種類を抽象化しない | source.md |
+| [D-10](domain-model/source.md#d-10) | Source はフィード形式を持たない | source.md |
+| [D-11](domain-model/episode.md#d-11) | Episode の Identity は ID | episode.md |
+| [D-12](domain-model/episode.md#d-12) | Audio は保存先に依存しない Key だけを持つ | episode.md |
+| [D-13](domain-model/episode.md#d-13) | Episode は完成したときだけ存在する | episode.md |
+| [D-14](domain-model/episode.md#d-14) | 不正な Reference は除外して続行する | episode.md |
+| [D-15](domain-model/episode.md#d-15) | 再生成は同じ Use Case で上書きする | episode.md |
+| [D-16](domain-model/episode.md#d-16) | 記事が0件の日は Episode を作らない | episode.md |
