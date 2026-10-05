@@ -47,7 +47,7 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 | Repository | 操作 | 備考 |
 | --- | --- | --- |
 | SourceRepository | FindAll | 読み取りのみ。書き込みは CMS が行う |
-| EpisodeRepository | FindByDate, Save | Save は Date が同じ Episode を上書きする |
+| EpisodeRepository | FindByDate, Save | Save は Date が同じ Episode を上書きする。Date の一意性は Save が原子的に保証する（[episode.md](episode.md#identity-と-date)） |
 
 Article には Repository を置かない。
 

@@ -26,6 +26,7 @@ Audio (VO)
 
 - Identity は ID である。外部に公開する識別子（CMS、GraphQL）を日付から切り離すため（[D-11](decisions.md#d-11-episode-の-identity-は-id)）
 - Date は生成を実行した JST の日付で、**ユニーク**とする
+- 一意性は EpisodeRepository.Save が Date をキーに原子的に保証する。FindByDate で確認してから New する流れだけでは、生成処理が同時に実行されたときに同じ Date の Episode が2件できうるため。同時実行で競合した場合は、後から保存した Episode で上書きする（具体的な実現方法はテーブル設計で決める。[infra-alignment.md](infra-alignment.md)）
 - 選定後の記事が0件の日は Episode を作らない（[D-16](decisions.md#d-16-記事が0件の日は-episode-を作らない)）。そのため Episode は1日あたり0件か1件になる
 - Episode はタイトルを持たない
 

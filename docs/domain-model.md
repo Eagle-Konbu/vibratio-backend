@@ -15,7 +15,7 @@ vibratio は、技術系の情報源から毎朝1回記事を収集し、ラジ�
 
 | 方針 | 内容 |
 | --- | --- |
-| 低コスト | LLM には記事本文を渡さず、メタデータと概要（Summary）だけを渡す。Summary を N 文字以内と定義するので、入力量には上限がある |
+| 低コスト | LLM には記事本文を渡さず、メタデータと概要（Summary）だけを渡す。本文に相当しうる Summary は N 文字以内、記事数は Source ごとに k 件以内とする。Title などのメタデータと Source 数には上限を設けないので、入力量全体の上限ではなく、記事1件あたりの量を抑える方針である |
 | シンプル | Entity / Aggregate / Repository は必要なものだけを置く。状態遷移は持たない |
 | 外部サービスを持ち込まない | RSS / Atom、LLM、TTS、S3、DynamoDB、Discord の仕様は Adapter に閉じ込める |
 | MVP と将来を分ける | 将来必要になりうるものは [future.md](domain-model/future.md) に記録し、MVP には入れない |

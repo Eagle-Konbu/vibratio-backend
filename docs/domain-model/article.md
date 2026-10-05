@@ -29,7 +29,7 @@ Article は日をまたいで蓄積・管理する対象ではない（[D-01](de
 
 フィードから得られる**概要**であり、**プレーンテキストで N 文字以内**と定義する（[D-07](decisions.md#d-07-summary-はプレーンテキストで-n-文字以内)）。
 
-- この定義により、記事本文を持たないことと、LLM への入力コストに上限があることを保証する
+- この定義により、記事本文を持たないことと、記事1件あたりの Summary の量に上限があることを保証する
 - どの要素から取るか（RSS `description`、Atom `summary` / `content`）、HTML の除去、切り詰めは FeedFetcher の Adapter の責務
 - Atom の `content` のように全文が入っている要素も、切り詰めれば冒頭の要約として使える
 - 概要が得られない場合は空を許容する。Web ページを取得して要約を生成することはしない
@@ -64,4 +64,4 @@ SelectArticles(fetched: Source ごとの Article[], now, window, k) → Article[
 - RSS や LLM の仕様に依存しないルールなので Domain に置き、Port のモックなしで単体テストする（[D-05](decisions.md#d-05-記事の選定ルールは-domain-の関数)）
 - 入力を Source ごとにまとめて受け取るので、SourceName が重複していても Source ごとの上限を正しく適用できる
 - window・k の具体値は Application の[設定値](generate-episode.md#設定値)として引数で渡す
-- 入力コストの上限は「Source 数 × k × (Title + N)」で見積もれる
+- LLM への入力量は「Source 数 × k × (SourceName + Title + URL + PublishedAt + N)」で見積もれる。このうち上限を定めるのは k と N（Summary）だけである。SourceName・Title・URL・PublishedAt はフィードのメタデータで、Domain では長さを制限しない。Source 数も CMS で登録した数で決まり、上限を設けない
