@@ -12,14 +12,16 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 ```text
 1. SourceRepository.FindAll()                          → Source[]
      0件なら失敗とする（D-17）
+     ID の昇順に並べ替える（SelectArticles の重複除去を決定的にするため）
 2. FeedFetcher.Fetch(source)  ※Source ごと             → Article[]
      取得に失敗した Source はスキップしてログに出す。すべて失敗したら失敗とする（D-17）
-3. SelectArticles(fetched, now, window, k)            → Article[]
+3. SelectArticles(fetched, now, window, k, n)         → Article[]
      0件なら Episode を作らずに正常終了する（D-16）
 4. ScriptGenerator.Generate(articles)                  → Script, Topics
 5. Reference を入力記事と照合する
      入力記事に存在しない URL の Reference を除外し、除外件数をログに出す
      Reference の Title は入力記事の値で上書きする
+     ValidateContent(script, topics) で Episode の不変条件を検査する。違反なら失敗とする（D-18）
 6. EpisodeRepository.FindByDate(today)
      あれば既存の ID を使い、なければ新しい ID を採番する
 7. Synthesizer.Synthesize(script)                       → 音声データ
@@ -39,7 +41,7 @@ Domain Model から導かれる Application 層の構成。MVP の Use Case は�
 
 ## 失敗時
 
-自動では再試行せず、手動で全体を再実行する（[D-13](episode.md#d-13)）。
+生成処理全体は自動では再実行せず、手動で全体を再実行する（[D-13](episode.md#d-13)）。外部サービスの一時的な障害は、呼び出し単位で Adapter が再試行する（[architecture.md A-20](../architecture.md#a-20)）。
 
 - 手順10（保存）までに失敗した場合、Episode は保存されない
 - 手順11（通知）で失敗した場合、Episode は保存済みである。再実行すると、その日の Episode を再生成して差し替える（Replace）
@@ -86,11 +88,11 @@ Article には Repository を置かない。
 
 | Port | 責務 | Adapter に閉じ込めるもの |
 | --- | --- | --- |
-| FeedFetcher | Source から Article[] を取得する | RSS / Atom の形式判別、要素の選択、HTML 除去、Summary の切り詰め、PublishedAt のない記事の扱い |
+| FeedFetcher | Source から Article[] を取得する | RSS / Atom の形式判別、要素の選択、HTML 除去、PublishedAt のない記事の扱い |
 | ScriptGenerator | Article[] から Script と Topics を生成する | LLM のプロンプト、構造化出力のスキーマ、API |
 | Synthesizer | Script から音声データを生成する | TTS の API、文字数制限に応じたテキストの分割と結合 |
-| AudioStorage | 音声データを保存し Key を返す | 保存先（S3）、Key の作り方（推測困難な要素を含める）、Content-Type |
-| Notifier | Episode を通知する | Discord の形式と文字数制限、Key から配信 URL への変換 |
+| AudioStorage | 音声データを新しい Key で保存し、その Key を返す。既存の音声を上書きしない | 保存先（S3）、Key の作り方（推測困難な要素を含める）、Content-Type |
+| Notifier | Episode を通知する | Discord の形式と文字数制限。配信 URL は Key から作る関数を外から受け取る（[architecture.md A-24](../architecture.md#a-24)） |
 
 ## 設定値
 

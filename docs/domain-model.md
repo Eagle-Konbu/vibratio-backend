@@ -2,7 +2,7 @@
 
 このファイルは vibratio backend の Domain Model の全体像を示す。各概念の詳細と判断理由は `docs/domain-model/` 配下に分けて書いた。
 
-- 状態: MVP の設計として合意済み（2026-10-05）。まだ決めていない項目は [§7](#7-未決事項) にまとめた
+- 状態: MVP の設計として合意済み（2026-10-05）。2026-10-07 のアーキテクチャのレビューを受けて D-18 を追加し、D-07 を改めた。この修正は未合意である。まだ決めていない項目は [§7](#7-未決事項) にまとめた
 - 読み方: 初めて読むなら §1〜5 で全体をつかみ、[episode.md](domain-model/episode.md) → [article.md](domain-model/article.md) → [generate-episode.md](domain-model/generate-episode.md) の順に読む。本文中の D-xx は設計判断の補足を指す。補足は関係する節の直後に置き、一覧は [§8](#8-設計判断の一覧) にまとめた
 
 ## 1. 目的
@@ -130,9 +130,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | k（Source ごとの記事数の上限） | 未定 | 実装時 | [generate-episode.md](domain-model/generate-episode.md#設定値) |
 | N（Summary の最大文字数） | 300〜500 文字を目安とする | 実装時 | [generate-episode.md](domain-model/generate-episode.md#設定値) |
-| 再生成した音声の配信キャッシュ | 上書き時にキャッシュを無効化する / 生成ごとに新しい Key にする | AudioStorage Adapter の実装時 | [infra-alignment.md](domain-model/infra-alignment.md) |
 | 生成処理の直列化の実現方法 | 同時実行数を1にする / 日付ごとのロックを取る | infra の変更時 | [generate-episode.md](domain-model/generate-episode.md#同時実行) |
-| Episode テーブルのキー設計 | 未定 | infra の変更時 | [infra-alignment.md](domain-model/infra-alignment.md) |
 | Source の Enabled | 持たせるかどうか | CMS の実装時 | [future.md](domain-model/future.md) |
 
 ## 8. 設計判断の一覧
@@ -158,3 +156,4 @@ flowchart LR
 | [D-15](domain-model/episode.md#d-15) | 再生成は同じ Use Case で上書きする | episode.md |
 | [D-16](domain-model/episode.md#d-16) | 記事が0件の日は Episode を作らない | episode.md |
 | [D-17](domain-model/generate-episode.md#d-17) | 一部の Source の取得に失敗しても続行する | generate-episode.md |
+| [D-18](domain-model/episode.md#d-18) | Script と Topics の不変条件は TTS の前に検査する | episode.md |
