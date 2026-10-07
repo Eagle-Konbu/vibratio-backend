@@ -10,7 +10,7 @@ Article
 - Title
 - URL
 - PublishedAt  必須
-- Summary      プレーンテキスト、N 文字以内。空でもよい
+- Summary      プレーンテキスト。選定後は N 文字以内。空でもよい
 ```
 
 ### Identity を持たない
@@ -49,10 +49,11 @@ Article は日をまたいで蓄積・管理する対象ではない（[D-01](#d
 
 ### Summary
 
-フィードから得られる**概要**であり、**プレーンテキストで N 文字以内**と定義する（[D-07](#d-07)）。
+フィードから得られる**概要**であり、**プレーンテキストで、選定後は N 文字以内**と定義する（[D-07](#d-07)）。
 
-- この定義により、記事本文を持たないことと、記事1件あたりの Summary の量に上限があることを保証する
-- どの要素から取るか（RSS `description`、Atom `summary` / `content`）、HTML の除去、切り詰めは FeedFetcher の Adapter の責務
+- この定義により、LLM に渡す記事が本文を持たないことと、記事1件あたりの Summary の量に上限があることを保証する
+- どの要素から取るか（RSS `description`、Atom `summary` / `content`）と HTML の除去は FeedFetcher の Adapter の責務
+- N 文字への切り詰めは SelectArticles が行う（[記事の選定](#記事の選定selectarticles)）。Source の種類や Adapter の実装によらず、上限を1か所で保証するため
 - Atom の `content` のように全文が入っている要素も、切り詰めれば冒頭の要約として使える
 - 概要が得られない場合は空を許容する。Web ページを取得して要約を生成することはしない
 
@@ -62,8 +63,8 @@ N の具体値は Application の[設定値](generate-episode.md#設定値)と�
 
 > **D-07: Summary はプレーンテキストで N 文字以内**
 >
-> - 検討した案: `content` は使わない / 制約を設けない
-> - 理由: フィードの `description` や `content` には全文や HTML が入っていることが多い。この定義によって「本文を持たない」と「記事1件あたりの Summary の量に上限がある」を構造的に保証する。Title などのメタデータは制限しないため、入力量全体の上限にはならない。冒頭を切り詰めるだけなら本文を持つことにはならない
+> - 検討した案: `content` は使わない / 制約を設けない / N 文字への切り詰めを FeedFetcher の Adapter で行う
+> - 理由: フィードの `description` や `content` には全文や HTML が入っていることが多い。この定義によって「本文を持たない」と「記事1件あたりの Summary の量に上限がある」を構造的に保証する。Title などのメタデータは制限しないため、入力量全体の上限にはならない。冒頭を切り詰めるだけなら本文を持つことにはならない。切り詰めを Adapter に任せると、LLM のコストを抑える保証が Adapter の正しさに依存し、Source の種類を増やしたときに漏れうる。SelectArticles で行えば、上限は Domain の1か所で保証され、選ばれなかった記事を切り詰める無駄もない
 
 ### 本文を持たない理由
 
@@ -78,7 +79,7 @@ N の具体値は Application の[設定値](generate-episode.md#設定値)と�
 取得した Article から、その日の番組の素材を決める Domain の純粋関数。
 
 ```text
-SelectArticles(fetched: Source ごとの Article[], now, window, k) → Article[]
+SelectArticles(fetched: Source ごとの Article[], now, window, k, n) → Article[]
 ```
 
 ルールは次の順に適用する。
@@ -86,13 +87,15 @@ SelectArticles(fetched: Source ごとの Article[], now, window, k) → Article[
 1. **対象期間**: `now - window` 以降に公開された記事だけを残す
 2. **Source ごとの上限**: Source ごとに PublishedAt の新しい順で k 件までに絞る
 3. **重複除去**: URL が完全一致する記事は1件にまとめる（先に現れた Source の記事を残す）
+4. **Summary の切り詰め**: 残った記事の Summary を n 文字（rune 単位）までに切り詰める（[D-07](#d-07)）
 
 ### 設計上のポイント
 
 - 対象期間で絞るので、前日に紹介した記事が再び候補になること（日をまたいだ重複）はほぼない。そのため過去の Episode との URL 照合は行わない（[D-04](#d-04)）
 - RSS や LLM の仕様に依存しないルールなので Domain に置き、Port のモックなしで単体テストする（[D-05](#d-05)）
 - 入力を Source ごとにまとめて受け取るので、SourceName が重複していても Source ごとの上限を正しく適用できる
-- window・k の具体値は Application の[設定値](generate-episode.md#設定値)として引数で渡す
+- window・k・N の具体値は Application の[設定値](generate-episode.md#設定値)として引数で渡す
+- 重複除去は Source の順序に依存する。順序を決定的にするのは呼び出す側（Use Case）の責務である
 - LLM への入力量は「Source 数 × k × (SourceName + Title + URL + PublishedAt + N)」で見積もれる。k と N が制限するのは記事数と Summary の長さだけであり、入力全体に厳密な上限はない。SourceName・Title・URL・PublishedAt はフィードのメタデータであり、Domain では長さを制限しない。Source 数は CMS で登録した数で決まる
 
 <a id="d-04"></a>

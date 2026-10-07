@@ -28,7 +28,7 @@ Audio (VO)
 - Date は生成を実行した JST の日付で、**ユニーク**とする
 - FindByDate で確認してから New するだけでは、一意性を保てない。生成処理が同時に実行されると、どちらも既存なしと判断し、同じ Date に別々の ID で Episode を作りうる
 - そのため生成処理は、同じ日について同時に実行しない（[generate-episode.md](generate-episode.md#同時実行)）
-- 加えて EpisodeRepository.Save が Date の一意性を原子的に保証する。保存済みの Episode と ID が異なる場合は上書きせず、Save を失敗させて既存の Episode を維持する。実現方法はテーブル設計で決める（[infra-alignment.md](infra-alignment.md)）
+- 加えて EpisodeRepository.Save が Date の一意性を原子的に保証する。保存済みの Episode と ID が異なる場合は上書きせず、Save を失敗させて既存の Episode を維持する。実現方法は、Date をキーにした条件付き書き込みとする（[architecture.md A-22](../architecture.md#a-22)）
 - 選定後の記事が0件の日は Episode を作らない（[D-16](#d-16)）。そのため Episode は1日あたり0件か1件になる
 - Episode はタイトルを持たない
 
@@ -82,7 +82,7 @@ References が0件の Topic を許容する。入力記事にない URL を指�
 Audio は Key だけを持つ Value Object である（[D-12](#d-12)）。
 
 - Key は AudioStorage（Port）が保存時に返す識別子であり、Domain はその中身を解釈しない
-- S3 の ObjectKey や配信 URL を Domain に持ち込まない。再生用 URL は Infrastructure が Key から生成する
+- S3 の ObjectKey や配信 URL を Domain に持ち込まない。再生用 URL は Domain の外で Key から生成する
 - Duration は持たない。MVP には取得コストに見合う用途がない
 
 Audio を値として Episode に持たせることで、「存在する Episode は必ず聴ける」を型と不変条件で表す。
@@ -118,7 +118,17 @@ LLM の出力が入力記事に由来するかの検証は、Episode の不変�
 ```text
 New(id, date, script, topics, audio) → Episode     不変条件を検証して生成する
 Replace(script, topics, audio)                     ID と Date を維持したまま内容を差し替える
+ValidateContent(script, topics) → error            Script と Topics の不変条件を検査する。New / Replace も内部で使う
 ```
+
+Use Case は、LLM の出力を受け取った直後に ValidateContent を呼び、TTS の前に不変条件の違反を検出する（[D-18](#d-18)）。
+
+<a id="d-18"></a>
+
+> **D-18: Script と Topics の不変条件は TTS の前に検査する**
+>
+> - 検討した案: Episode.New / Replace のときだけ検査する
+> - 理由: Script と Topics の不変条件の違反は、LLM の出力を受け取った時点で分かる。New / Replace のときだけ検査すると、違反に気付くのが TTS の課金と音声の保存の後になる。検査を ValidateContent として Domain に置き、New / Replace と Use Case の両方から使えば、ルールは1か所のまま早く失敗できる
 
 ID は音声を保存する前（Episode.New / Replace の前）に決める。AudioStorage が ID をもとに Key を作るため、音声を保存する時点で ID が必要になる。
 
@@ -130,7 +140,7 @@ ID は音声を保存する前（Episode.New / Replace の前）に決める。A
 - 再生成前の内容は履歴として残さない
 - 再生成でも Discord に通知する
 - 過去の日付を指定した再生成は行わない
-- 再生成で同じ Key に上書きすると、配信キャッシュに古い音声が残る。対処方法は未決である（[infra-alignment.md](infra-alignment.md)）
+- 再生成では音声を新しい Key で保存し、古い音声を上書きしない。Save が失敗しても、保存済みの Episode と音声は食い違わない。Key が変わるので、配信キャッシュに古い音声が残る問題も起きない（[architecture.md A-18](../architecture.md#a-18)）
 
 <a id="d-15"></a>
 
