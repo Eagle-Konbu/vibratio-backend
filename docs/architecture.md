@@ -2,7 +2,7 @@
 
 このファイルは、[Domain Model](domain-model.md) を Go のコードとしてどう構成するかを示す。アーキテクチャの方式（Ports and Adapters）、依存の向き、パッケージ構成、Port と Adapter の配置、横断的な実装方針を扱う。
 
-- 状態: MVP の設計として合意済み（2026-10-05）。2026-10-07 のレビュー（[architecture-review.md](architecture-review.md)、[architecture-rereview.md](architecture-rereview.md)）を受けて A-18〜A-24 を追加し、既存の判断の一部を改めた。この修正は未合意である。まだ決めていない項目は [§11](#11-未決事項) にまとめた
+- 状態: MVP の設計として合意済み（2026-10-05）。2026-10-07 のレビューを受けて A-18〜A-24 を追加し、既存の判断の一部を改めた。この修正は未合意である。まだ決めていない項目は [§11](#11-未決事項) にまとめた
 - 前提: MVP の Use Case は GenerateEpisode の1つだけで、Lambda（`provided.al2023`・`arm64`、バイナリ名 `bootstrap`）として動く
 - 本文中の A-xx はアーキテクチャの設計判断、D-xx は Domain Model の設計判断を指す。補足は関係する節の直後に置き、一覧は [§12](#12-設計判断の一覧) にまとめた
 
