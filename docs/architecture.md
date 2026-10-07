@@ -170,7 +170,7 @@ internal/
 docs/
 ```
 
-コードはすべて `internal/` の下に置き、外部のモジュールから import させない。
+Domain・Usecase・Adapter のパッケージ（とその補助の `config`）は `internal/` の下に置き、外部のモジュールから import させない。Lambda のエントリポイント（driving Adapter と Composition Root）は `cmd/` の下に置く。
 
 ### 型名
 
@@ -211,7 +211,7 @@ driven Port（Repository を含む）の interface は、それを使う Use Cas
 
 | Port | 操作 | 入力 | 出力 | 備考 |
 | --- | --- | --- | --- | --- |
-| SourceRepository | FindAll | なし | Source の一覧 | |
+| SourceRepository | FindAll | なし | Source の一覧 | ID の昇順で返す。[§7](#7-フィードの取得) の重複除去は Source の順序に依存するため、順序を決定的にする |
 | EpisodeRepository | FindByDate | Date | Episode（なければ「なし」） | 見つからないことは error にしない |
 | EpisodeRepository | Save | Episode | なし | 同じ Date に ID の異なる Episode があれば `ErrEpisodeConflict` |
 | FeedFetcher | Fetch | Source | Article の一覧 | |
